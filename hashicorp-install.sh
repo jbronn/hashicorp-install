@@ -50,6 +50,20 @@ if [ ! -x /usr/bin/unzip ]; then
     exit 1
 fi
 
+# Check if desired version is already installed first.
+if [ -x "$PACKAGE_BIN" ]; then
+    PACKAGE_VERSION_OUT="$($PACKAGE_BIN --version)"
+    if [ "$PACKAGE_NAME" == "packer" ]; then
+        PACKAGE_CURRENT_VERSION="$PACKAGE_VERSION_OUT"
+    else
+        PACKAGE_CURRENT_VERSION="$(echo "$PACKAGE_VERSION_OUT" | head -n 1 | awk '{ print $2 }' | tr -d v)"
+    fi
+    if [ "$PACKAGE_VERSION" == "$PACKAGE_CURRENT_VERSION" ]; then
+        echo "$PACKAGE_NAME v$PACKAGE_VERSION is already installed."
+        exit 0
+    fi
+fi
+
 # Do all our file manipulation in temporary fs.
 pushd "$PACKAGE_TMP"
 
@@ -104,15 +118,6 @@ elif [ "$LSB_DIST" == 'debian' ] || [ "$LSB_DIST" == 'ubuntu' ]; then
 else
     echo "Do not know how to install $PACKAGE_NAME on $LSB_DIST."
     exit 1
-fi
-
-if [ -x "$PACKAGE_BIN" ]; then
-    PACKAGE_VERSION_OUT="$($PACKAGE_BIN version)"
-    PACKAGE_CURRENT_VERSION="$(echo "$PACKAGE_VERSION_OUT" | awk '{ print $2 }' | tr -d v)"
-    if [ "$PACKAGE_VERSION" == "$PACKAGE_CURRENT_VERSION" ]; then
-        echo "$PACKAGE_NAME v$PACKAGE_VERSION is already installed."
-        exit 0
-    fi
 fi
 
 # Download Package files.
