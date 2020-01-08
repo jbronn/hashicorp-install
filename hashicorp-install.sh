@@ -100,6 +100,11 @@ fi
 if [ "$LSB_DIST" == 'centos' ] || [ "$LSB_DIST" == 'fedora' ] || [ "$LSB_DIST" == 'rhel' ]; then
     DOWNLOAD_COMMAND="curl -sSL -O"
 elif [ "$LSB_DIST" == 'debian' ] || [ "$LSB_DIST" == 'ubuntu' ]; then
+    # wget is not installed by default in some Debian-based containers.
+    if [ ! -x /usr/bin/wget ]; then
+        echo "Then wget utility is needed to download $PACKAGE_ZIP." >> /dev/stderr
+        exit 1
+    fi
     DOWNLOAD_COMMAND="wget -nv -L"
 else
     echo "Do not know how to install $PACKAGE_NAME on $LSB_DIST."
