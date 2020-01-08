@@ -40,8 +40,8 @@ PACKAGE_CHECKSUMS="${PACKAGE_NAME}_${PACKAGE_VERSION}_SHA256SUMS"
 PACKAGE_SIGNATURE="${PACKAGE_CHECKSUMS}.sig"
 PACKAGE_TMP="${PACKAGE_TMP:-/var/tmp}"
 
-if [ ! -x /usr/bin/gpg ]; then
-    echo "Then gpg utility is needed to verify $PACKAGE_ZIP." >> /dev/stderr
+if [ ! -x /usr/bin/gpgv ]; then
+    echo "Then gpgv utility is needed to verify $PACKAGE_ZIP." >> /dev/stderr
     exit 1
 fi
 
@@ -67,48 +67,34 @@ fi
 # Do all our file manipulation in temporary fs.
 pushd "$PACKAGE_TMP"
 
-if [ ! -d "$PACKAGE_TMP/.gnupg-hashicorp" ]; then
-    mkdir -m 0700 "$PACKAGE_TMP/.gnupg-hashicorp"
-fi
-
-# Import Hashicorp key.
-if ! gpg --homedir "$PACKAGE_TMP/.gnupg-hashicorp" --list-public-keys --with-colons | \
-        awk -F: '{ print $5 }' | \
-        grep -q -e '\<51852D87348FFC4C\>'; then
-    cat > hashicorp.key <<EOF
------BEGIN PGP PUBLIC KEY BLOCK-----
-Version: GnuPG v1
-
-mQENBFMORM0BCADBRyKO1MhCirazOSVwcfTr1xUxjPvfxD3hjUwHtjsOy/bT6p9f
-W2mRPfwnq2JB5As+paL3UGDsSRDnK9KAxQb0NNF4+eVhr/EJ18s3wwXXDMjpIifq
-fIm2WyH3G+aRLTLPIpscUNKDyxFOUbsmgXAmJ46Re1fn8uKxKRHbfa39aeuEYWFA
-3drdL1WoUngvED7f+RnKBK2G6ZEpO+LDovQk19xGjiMTtPJrjMjZJ3QXqPvx5wca
-KSZLr4lMTuoTI/ZXyZy5bD4tShiZz6KcyX27cD70q2iRcEZ0poLKHyEIDAi3TM5k
-SwbbWBFd5RNPOR0qzrb/0p9ksKK48IIfH2FvABEBAAG0K0hhc2hpQ29ycCBTZWN1
-cml0eSA8c2VjdXJpdHlAaGFzaGljb3JwLmNvbT6JATgEEwECACIFAlMORM0CGwMG
-CwkIBwMCBhUIAgkKCwQWAgMBAh4BAheAAAoJEFGFLYc0j/xMyWIIAIPhcVqiQ59n
-Jc07gjUX0SWBJAxEG1lKxfzS4Xp+57h2xxTpdotGQ1fZwsihaIqow337YHQI3q0i
-SqV534Ms+j/tU7X8sq11xFJIeEVG8PASRCwmryUwghFKPlHETQ8jJ+Y8+1asRydi
-psP3B/5Mjhqv/uOK+Vy3zAyIpyDOMtIpOVfjSpCplVRdtSTFWBu9Em7j5I2HMn1w
-sJZnJgXKpybpibGiiTtmnFLOwibmprSu04rsnP4ncdC2XRD4wIjoyA+4PKgX3sCO
-klEzKryWYBmLkJOMDdo52LttP3279s7XrkLEE7ia0fXa2c12EQ0f0DQ1tGUvyVEW
-WmJVccm5bq25AQ0EUw5EzQEIANaPUY04/g7AmYkOMjaCZ6iTp9hB5Rsj/4ee/ln9
-wArzRO9+3eejLWh53FoN1rO+su7tiXJA5YAzVy6tuolrqjM8DBztPxdLBbEi4V+j
-2tK0dATdBQBHEh3OJApO2UBtcjaZBT31zrG9K55D+CrcgIVEHAKY8Cb4kLBkb5wM
-skn+DrASKU0BNIV1qRsxfiUdQHZfSqtp004nrql1lbFMLFEuiY8FZrkkQ9qduixo
-mTT6f34/oiY+Jam3zCK7RDN/OjuWheIPGj/Qbx9JuNiwgX6yRj7OE1tjUx6d8g9y
-0H1fmLJbb3WZZbuuGFnK6qrE3bGeY8+AWaJAZ37wpWh1p0cAEQEAAYkBHwQYAQIA
-CQUCUw5EzQIbDAAKCRBRhS2HNI/8TJntCAClU7TOO/X053eKF1jqNW4A1qpxctVc
-z8eTcY8Om5O4f6a/rfxfNFKn9Qyja/OG1xWNobETy7MiMXYjaa8uUx5iFy6kMVaP
-0BXJ59NLZjMARGw6lVTYDTIvzqqqwLxgliSDfSnqUhubGwvykANPO+93BBx89MRG
-unNoYGXtPlhNFrAsB1VR8+EyKLv2HQtGCPSFBhrjuzH3gxGibNDDdFQLxxuJWepJ
-EK1UbTS4ms0NgZ2Uknqn1WRU1Ki7rE4sTy68iZtWpKQXZEJa0IGnuI2sSINGcXCJ
-oEIgXTMyCILo34Fa/C6VCm2WBgz9zZO8/rHIiQm1J5zqz0DrDwKBUM9C
-=LYpS
------END PGP PUBLIC KEY BLOCK-----
+# Create Hashicorp GPG keyring from base64-encoded binary of the release
+# key (91A6E7F85D05C65630BEF18951852D87348FFC4C).
+if [ ! -f hashicorp.gpg ]; then
+    cat > hashicorp.asc <<EOF
+mQENBFMORM0BCADBRyKO1MhCirazOSVwcfTr1xUxjPvfxD3hjUwHtjsOy/bT6p9fW2mRPfwnq2JB
+5As+paL3UGDsSRDnK9KAxQb0NNF4+eVhr/EJ18s3wwXXDMjpIifqfIm2WyH3G+aRLTLPIpscUNKD
+yxFOUbsmgXAmJ46Re1fn8uKxKRHbfa39aeuEYWFA3drdL1WoUngvED7f+RnKBK2G6ZEpO+LDovQk
+19xGjiMTtPJrjMjZJ3QXqPvx5wcaKSZLr4lMTuoTI/ZXyZy5bD4tShiZz6KcyX27cD70q2iRcEZ0
+poLKHyEIDAi3TM5kSwbbWBFd5RNPOR0qzrb/0p9ksKK48IIfH2FvABEBAAG0K0hhc2hpQ29ycCBT
+ZWN1cml0eSA8c2VjdXJpdHlAaGFzaGljb3JwLmNvbT6JATgEEwECACIFAlMORM0CGwMGCwkIBwMC
+BhUIAgkKCwQWAgMBAh4BAheAAAoJEFGFLYc0j/xMyWIIAIPhcVqiQ59nJc07gjUX0SWBJAxEG1lK
+xfzS4Xp+57h2xxTpdotGQ1fZwsihaIqow337YHQI3q0iSqV534Ms+j/tU7X8sq11xFJIeEVG8PAS
+RCwmryUwghFKPlHETQ8jJ+Y8+1asRydipsP3B/5Mjhqv/uOK+Vy3zAyIpyDOMtIpOVfjSpCplVRd
+tSTFWBu9Em7j5I2HMn1wsJZnJgXKpybpibGiiTtmnFLOwibmprSu04rsnP4ncdC2XRD4wIjoyA+4
+PKgX3sCOklEzKryWYBmLkJOMDdo52LttP3279s7XrkLEE7ia0fXa2c12EQ0f0DQ1tGUvyVEWWmJV
+ccm5bq25AQ0EUw5EzQEIANaPUY04/g7AmYkOMjaCZ6iTp9hB5Rsj/4ee/ln9wArzRO9+3eejLWh5
+3FoN1rO+su7tiXJA5YAzVy6tuolrqjM8DBztPxdLBbEi4V+j2tK0dATdBQBHEh3OJApO2UBtcjaZ
+BT31zrG9K55D+CrcgIVEHAKY8Cb4kLBkb5wMskn+DrASKU0BNIV1qRsxfiUdQHZfSqtp004nrql1
+lbFMLFEuiY8FZrkkQ9qduixomTT6f34/oiY+Jam3zCK7RDN/OjuWheIPGj/Qbx9JuNiwgX6yRj7O
+E1tjUx6d8g9y0H1fmLJbb3WZZbuuGFnK6qrE3bGeY8+AWaJAZ37wpWh1p0cAEQEAAYkBHwQYAQIA
+CQUCUw5EzQIbDAAKCRBRhS2HNI/8TJntCAClU7TOO/X053eKF1jqNW4A1qpxctVcz8eTcY8Om5O4
+f6a/rfxfNFKn9Qyja/OG1xWNobETy7MiMXYjaa8uUx5iFy6kMVaP0BXJ59NLZjMARGw6lVTYDTIv
+zqqqwLxgliSDfSnqUhubGwvykANPO+93BBx89MRGunNoYGXtPlhNFrAsB1VR8+EyKLv2HQtGCPSF
+BhrjuzH3gxGibNDDdFQLxxuJWepJEK1UbTS4ms0NgZ2Uknqn1WRU1Ki7rE4sTy68iZtWpKQXZEJa
+0IGnuI2sSINGcXCJoEIgXTMyCILo34Fa/C6VCm2WBgz9zZO8/rHIiQm1J5zqz0DrDwKBUM9C
 EOF
-    gpg --homedir "$PACKAGE_TMP/.gnupg-hashicorp" --import < hashicorp.key
-    rm hashicorp.key
+    base64 --decode hashicorp.asc > hashicorp.gpg
+    rm hashicorp.asc
 fi
 
 if [ "$LSB_DIST" == 'centos' ] || [ "$LSB_DIST" == 'fedora' ] || [ "$LSB_DIST" == 'rhel' ]; then
@@ -127,7 +113,7 @@ do
 done
 
 # GPG verify the signature for the SHA256SUMS file.
-gpg --homedir "$PACKAGE_TMP/.gnupg-hashicorp"  --verify "$PACKAGE_SIGNATURE"
+gpgv --keyring "$PACKAGE_TMP/hashicorp.gpg" "$PACKAGE_SIGNATURE" "$PACKAGE_CHECKSUMS"
 
 # Verify checksums, but grep out all other lines in the checksum
 # file except the desired package.
