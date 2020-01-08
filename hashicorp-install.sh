@@ -50,6 +50,20 @@ if [ ! -x /usr/bin/unzip ]; then
     exit 1
 fi
 
+if [ "$LSB_DIST" == 'centos' ] || [ "$LSB_DIST" == 'fedora' ] || [ "$LSB_DIST" == 'rhel' ]; then
+    DOWNLOAD_COMMAND="curl -sSL -O"
+elif [ "$LSB_DIST" == 'debian' ] || [ "$LSB_DIST" == 'ubuntu' ]; then
+    # wget is not installed by default in some Debian-based containers.
+    if [ ! -x /usr/bin/wget ]; then
+        echo "Then wget utility is needed to download $PACKAGE_ZIP." >> /dev/stderr
+        exit 1
+    fi
+    DOWNLOAD_COMMAND="wget -nv -L"
+else
+    echo "Do not know how to install $PACKAGE_NAME on $LSB_DIST."
+    exit 1
+fi
+
 # Check if desired version is already installed first.
 if [ -x "$PACKAGE_BIN" ]; then
     PACKAGE_VERSION_OUT="$($PACKAGE_BIN --version)"
@@ -95,20 +109,6 @@ BhrjuzH3gxGibNDDdFQLxxuJWepJEK1UbTS4ms0NgZ2Uknqn1WRU1Ki7rE4sTy68iZtWpKQXZEJa
 EOF
     base64 --decode hashicorp.asc > hashicorp.gpg
     rm hashicorp.asc
-fi
-
-if [ "$LSB_DIST" == 'centos' ] || [ "$LSB_DIST" == 'fedora' ] || [ "$LSB_DIST" == 'rhel' ]; then
-    DOWNLOAD_COMMAND="curl -sSL -O"
-elif [ "$LSB_DIST" == 'debian' ] || [ "$LSB_DIST" == 'ubuntu' ]; then
-    # wget is not installed by default in some Debian-based containers.
-    if [ ! -x /usr/bin/wget ]; then
-        echo "Then wget utility is needed to download $PACKAGE_ZIP." >> /dev/stderr
-        exit 1
-    fi
-    DOWNLOAD_COMMAND="wget -nv -L"
-else
-    echo "Do not know how to install $PACKAGE_NAME on $LSB_DIST."
-    exit 1
 fi
 
 # Download Package files.
