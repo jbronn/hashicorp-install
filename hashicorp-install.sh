@@ -40,12 +40,12 @@ PACKAGE_CHECKSUMS="${PACKAGE_NAME}_${PACKAGE_VERSION}_SHA256SUMS"
 PACKAGE_SIGNATURE="${PACKAGE_CHECKSUMS}.sig"
 PACKAGE_TMP="${PACKAGE_TMP:-/var/tmp}"
 
-if ! which gpg > /dev/null; then
+if [ ! -x /usr/bin/gpg ]; then
     echo "Then gpg utility is needed to verify $PACKAGE_ZIP." >> /dev/stderr
     exit 1
 fi
 
-if ! which unzip > /dev/null; then
+if [ ! -x /usr/bin/unzip ]; then
     echo "Then unzip utility is needed to extract $PACKAGE_ZIP." >> /dev/stderr
     exit 1
 fi
