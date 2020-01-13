@@ -19,7 +19,7 @@ case "$PACKAGE_NAME" in
         PACKAGE_VERSION="${PACKAGE_VERSION:-1.5.1}"
         ;;
     terraform)
-        PACKAGE_VERSION="${PACKAGE_VERSION:-0.12.18}"
+        PACKAGE_VERSION="${PACKAGE_VERSION:-0.12.19}"
         ;;
     *)
         if [ -n "$PACKAGE_NAME" ]; then
