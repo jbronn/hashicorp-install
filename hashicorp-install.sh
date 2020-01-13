@@ -1,7 +1,5 @@
-#!/bin/bash
-set -euo pipefail
-
-LSB_DIST="$(. /etc/os-release && echo "$ID")"
+#!/bin/sh
+set -eu
 
 # What Hashicorp package are we installing today?
 PACKAGE_NAME="${1:-}"
@@ -50,36 +48,31 @@ if [ ! -x /usr/bin/unzip ]; then
     exit 1
 fi
 
-if [ "$LSB_DIST" == 'centos' ] || [ "$LSB_DIST" == 'fedora' ] || [ "$LSB_DIST" == 'rhel' ]; then
-    DOWNLOAD_COMMAND="curl -sSL -O"
-elif [ "$LSB_DIST" == 'debian' ] || [ "$LSB_DIST" == 'ubuntu' ]; then
-    # wget is not installed by default in some Debian-based containers.
-    if [ ! -x /usr/bin/wget ]; then
-        echo "Then wget utility is needed to download $PACKAGE_ZIP." >> /dev/stderr
-        exit 1
-    fi
-    DOWNLOAD_COMMAND="wget -nv -L"
+if [ -x /usr/bin/curl ]; then
+    DOWNLOAD_COMMAND="curl -sSL -C - -O"
+elif [ -x /usr/bin/wget ]; then
+    DOWNLOAD_COMMAND="wget -c -q"
 else
-    echo "Do not know how to install $PACKAGE_NAME on $LSB_DIST."
+    echo "Either the curl or wget programs are required to download $PACKAGE_NAME."
     exit 1
 fi
 
 # Check if desired version is already installed first.
 if [ -x "$PACKAGE_BIN" ]; then
     PACKAGE_VERSION_OUT="$($PACKAGE_BIN --version)"
-    if [ "$PACKAGE_NAME" == "packer" ]; then
+    if [ "$PACKAGE_NAME" = "packer" ]; then
         PACKAGE_CURRENT_VERSION="$PACKAGE_VERSION_OUT"
     else
         PACKAGE_CURRENT_VERSION="$(echo "$PACKAGE_VERSION_OUT" | head -n 1 | awk '{ print $2 }' | tr -d v)"
     fi
-    if [ "$PACKAGE_VERSION" == "$PACKAGE_CURRENT_VERSION" ]; then
+    if [ "$PACKAGE_VERSION" = "$PACKAGE_CURRENT_VERSION" ]; then
         echo "$PACKAGE_NAME v$PACKAGE_VERSION is already installed."
         exit 0
     fi
 fi
 
 # Do all our file manipulation in temporary fs.
-pushd "$PACKAGE_TMP"
+cd "$PACKAGE_TMP"
 
 # Create Hashicorp GPG keyring from base64-encoded binary of the release
 # key (91A6E7F85D05C65630BEF18951852D87348FFC4C).
@@ -107,7 +100,7 @@ zqqqwLxgliSDfSnqUhubGwvykANPO+93BBx89MRGunNoYGXtPlhNFrAsB1VR8+EyKLv2HQtGCPSF
 BhrjuzH3gxGibNDDdFQLxxuJWepJEK1UbTS4ms0NgZ2Uknqn1WRU1Ki7rE4sTy68iZtWpKQXZEJa
 0IGnuI2sSINGcXCJoEIgXTMyCILo34Fa/C6VCm2WBgz9zZO8/rHIiQm1J5zqz0DrDwKBUM9C
 EOF
-    base64 --decode hashicorp.asc > hashicorp.gpg
+    base64 -d hashicorp.asc > hashicorp.gpg
     rm hashicorp.asc
 fi
 
@@ -122,10 +115,10 @@ gpgv --keyring "$PACKAGE_TMP/hashicorp.gpg" "$PACKAGE_SIGNATURE" "$PACKAGE_CHECK
 
 # Verify checksums, but grep out all other lines in the checksum
 # file except the desired package.
-sha256sum -c <(grep -e "[[:space:]]\\+$PACKAGE_ZIP\\>" "$PACKAGE_CHECKSUMS")
+grep -e "[[:space:]]\\+$PACKAGE_ZIP\\>" "$PACKAGE_CHECKSUMS" | sha256sum -c
 
 # Finally extract the zip file.
-if [ "$EUID" -eq 0 ]; then
+if [ "$(id -u)" -eq 0 ]; then
     unzip -o "$PACKAGE_ZIP" -d "$PACKAGE_PATH"
 else
     sudo unzip -o "$PACKAGE_ZIP" -d "$PACKAGE_PATH"
@@ -133,4 +126,3 @@ fi
 
 # Clean up.
 rm -f "$PACKAGE_ZIP" "$PACKAGE_CHECKSUMS" "$PACKAGE_SIGNATURE"
-popd
