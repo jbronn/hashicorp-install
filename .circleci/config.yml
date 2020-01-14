@@ -1,0 +1,19 @@
+---
+version: 2
+  shellcheck:
+    docker:
+      - image: ubuntu:bionic
+    steps:
+      - checkout
+      - run: 'install shellcheck'
+        command: |
+          apt-get -y update && apt-get -y install shellcheck
+      - run: 'run shellcheck'
+        command: |
+          shellcheck hashicorp-install.sh
+
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - shellcheck
