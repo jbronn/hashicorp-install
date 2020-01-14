@@ -7,10 +7,10 @@ the `consul`, `packer`, and `terrform` Hashicorp packages.
 
 Usage of this script requires:
 
-* Linux: a Debian or RedHat based distribution
-* `gpg`
+* Linux
+* `gpgv`
 * `unzip`
-* `sudo` and administrative access
+* `sudo` or administrative access
 
 ## Usage
 
