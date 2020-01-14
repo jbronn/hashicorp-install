@@ -27,9 +27,16 @@ jobs:
       - run:
           name: 'Run Tests on Alpine'
           command: &test_install_command |
-            for package in "consul" "packer" "terraform"; do
-              ./hashicorp-install.sh $package;
+            # Install all packages.
+            for package in consul packer terraform; do
+              ./hashicorp-install.sh $package
             done
+
+            # Test installing Packer at a specific version and path.
+            PACKAGE_VERSION=1.4.5 PACKAGE_PATH=/usr/bin ./hashicorp-install.sh packer
+            if [ "$(/usr/bin/packer --version)" != "1.4.5" ]; then
+              echo "Couldn't install Packer at a specific version."
+            fi
   test-centos:
     docker:
       - image: centos
