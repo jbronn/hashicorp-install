@@ -15,9 +15,58 @@ jobs:
           name: 'run shellcheck'
           command: |
             shellcheck hashicorp-install.sh
+  install-alpine:
+    docker:
+      - image: alpine
+    steps:
+      - checkout
+      - run:
+          name: 'install prerequisites'
+          command: |
+            apk add gnupg unzip
+      - run:
+          name: 'run tests on Alpine'
+          command: |
+            for package in "consul" "packer" "terraform"; do ./hashicorp-install.sh $package; done
+  install-centos:
+    docker:
+      - image: centos
+    steps:
+      - checkout
+      - run:
+          name: 'install prerequisites'
+          command: |
+            yum -y install unzip
+      - run:
+          name: 'run tests on CentOS'
+          command: |
+            for package in "consul" "packer" "terraform"; do ./hashicorp-install.sh $package; done
+  install-ubuntu:
+    docker:
+      - image: ubuntu
+    steps:
+      - checkout
+      - run:
+          name: 'install prerequisites'
+          command: |
+            apt-get -y update && apt-get -y install wget unzip
+      - run:
+          name: 'run tests on Ubuntu'
+          command: |
+            for package in "consul" "packer" "terraform"; do ./hashicorp-install.sh $package; done
+
 
 workflows:
   version: 2
   tests:
     jobs:
       - shellcheck
+      - install-alpine:
+          requires:
+            - shellcheck
+      - install-centos:
+          requires:
+            - shellcheck
+      - install-ubuntu:
+          requires:
+            - shellcheck
