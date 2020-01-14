@@ -36,6 +36,7 @@ jobs:
             PACKAGE_VERSION=1.4.5 PACKAGE_PATH=/usr/bin ./hashicorp-install.sh packer
             if [ "$(/usr/bin/packer --version)" != "1.4.5" ]; then
               echo "Couldn't install Packer at a specific version."
+              exit 1
             fi
   test-centos:
     docker:

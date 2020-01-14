@@ -53,7 +53,7 @@ if [ -x /usr/bin/curl ]; then
 elif [ -x /usr/bin/wget ]; then
     DOWNLOAD_COMMAND="wget -c -q"
 else
-    echo "Either the curl or wget programs are required to download $PACKAGE_NAME."
+    echo "Either the curl or wget programs are required to download $PACKAGE_NAME." >> /dev/stderr
     exit 1
 fi
 
