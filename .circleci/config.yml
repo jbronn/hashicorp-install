@@ -8,65 +8,64 @@ jobs:
     steps:
       - checkout
       - run:
-          name: 'install shellcheck'
+          name: 'Install ShellCheck'
           command: |
             apt-get -y update && apt-get -y install shellcheck
       - run:
-          name: 'run shellcheck'
+          name: 'Run ShellCheck'
           command: |
             shellcheck hashicorp-install.sh
-  install-alpine:
+  test-alpine:
     docker:
       - image: alpine
     steps:
       - checkout
       - run:
-          name: 'install prerequisites'
+          name: 'Install Prerequisites'
           command: |
             apk add gnupg unzip
       - run:
-          name: 'run tests on Alpine'
-          command: |
-            for package in "consul" "packer" "terraform"; do ./hashicorp-install.sh $package; done
-  install-centos:
+          name: 'Run Tests on Alpine'
+          command: &test_install_command |
+            for package in "consul" "packer" "terraform"; do
+              ./hashicorp-install.sh $package;
+            done
+  test-centos:
     docker:
       - image: centos
     steps:
       - checkout
       - run:
-          name: 'install prerequisites'
+          name: 'Install Prerequisites'
           command: |
             yum -y install unzip
       - run:
-          name: 'run tests on CentOS'
-          command: |
-            for package in "consul" "packer" "terraform"; do ./hashicorp-install.sh $package; done
-  install-ubuntu:
+          name: 'Run Tests on CentOS'
+          command: *test_install_command
+  test-ubuntu:
     docker:
       - image: ubuntu
     steps:
       - checkout
       - run:
-          name: 'install prerequisites'
+          name: 'Install Prerequisites'
           command: |
             apt-get -y update && apt-get -y install wget unzip
       - run:
-          name: 'run tests on Ubuntu'
-          command: |
-            for package in "consul" "packer" "terraform"; do ./hashicorp-install.sh $package; done
-
+          name: 'Run Tests on Ubuntu'
+          command: *test_install_command
 
 workflows:
   version: 2
   tests:
     jobs:
       - shellcheck
-      - install-alpine:
+      - test-alpine:
           requires:
             - shellcheck
-      - install-centos:
+      - test-centos:
           requires:
             - shellcheck
-      - install-ubuntu:
+      - test-ubuntu:
           requires:
             - shellcheck
