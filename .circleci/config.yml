@@ -28,7 +28,7 @@ jobs:
           name: 'Run Tests on Alpine'
           command: &test_install_command |
             # Install all packages.
-            for package in consul packer terraform; do
+            for package in consul consul-esm packer terraform vault; do
               ./hashicorp-install.sh $package
             done
 

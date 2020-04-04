@@ -15,11 +15,17 @@ case "$PACKAGE_NAME" in
     consul)
         PACKAGE_VERSION="${PACKAGE_VERSION:-1.7.2}"
         ;;
+    consul-esm)
+        PACKAGE_VERSION="${PACKAGE_VERSION:-0.3.3}"
+        ;;
     packer)
         PACKAGE_VERSION="${PACKAGE_VERSION:-1.5.5}"
         ;;
     terraform)
         PACKAGE_VERSION="${PACKAGE_VERSION:-0.12.24}"
+        ;;
+    vault)
+        PACKAGE_VERSION="${PACKAGE_VERSION:-1.3.4}"
         ;;
     *)
         if [ -n "$PACKAGE_NAME" ]; then
@@ -62,6 +68,8 @@ if [ -x "$PACKAGE_BIN" ]; then
     PACKAGE_VERSION_OUT="$($PACKAGE_BIN --version)"
     if [ "$PACKAGE_NAME" = "packer" ]; then
         PACKAGE_CURRENT_VERSION="$PACKAGE_VERSION_OUT"
+    elif [ "$PACKAGE_NAME" = "consul-esm" ]; then
+        PACKAGE_CURRENT_VERSION="$(echo "$PACKAGE_VERSION_OUT" | tr -d v)"
     else
         PACKAGE_CURRENT_VERSION="$(echo "$PACKAGE_VERSION_OUT" | head -n 1 | awk '{ print $2 }' | tr -d v)"
     fi
