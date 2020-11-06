@@ -85,8 +85,7 @@ cd "$PACKAGE_TMP"
 # Create Hashicorp GPG keyring from base64-encoded binary of the release
 # key (91A6E7F85D05C65630BEF18951852D87348FFC4C).
 if [ ! -f hashicorp.gpg ]; then
-    cat > hashicorp.asc <<EOF
-mQENBFMORM0BCADBRyKO1MhCirazOSVwcfTr1xUxjPvfxD3hjUwHtjsOy/bT6p9fW2mRPfwnq2JB
+echo "mQENBFMORM0BCADBRyKO1MhCirazOSVwcfTr1xUxjPvfxD3hjUwHtjsOy/bT6p9fW2mRPfwnq2JB
 5As+paL3UGDsSRDnK9KAxQb0NNF4+eVhr/EJ18s3wwXXDMjpIifqfIm2WyH3G+aRLTLPIpscUNKD
 yxFOUbsmgXAmJ46Re1fn8uKxKRHbfa39aeuEYWFA3drdL1WoUngvED7f+RnKBK2G6ZEpO+LDovQk
 19xGjiMTtPJrjMjZJ3QXqPvx5wcaKSZLr4lMTuoTI/ZXyZy5bD4tShiZz6KcyX27cD70q2iRcEZ0
@@ -106,10 +105,8 @@ CQUCUw5EzQIbDAAKCRBRhS2HNI/8TJntCAClU7TOO/X053eKF1jqNW4A1qpxctVcz8eTcY8Om5O4
 f6a/rfxfNFKn9Qyja/OG1xWNobETy7MiMXYjaa8uUx5iFy6kMVaP0BXJ59NLZjMARGw6lVTYDTIv
 zqqqwLxgliSDfSnqUhubGwvykANPO+93BBx89MRGunNoYGXtPlhNFrAsB1VR8+EyKLv2HQtGCPSF
 BhrjuzH3gxGibNDDdFQLxxuJWepJEK1UbTS4ms0NgZ2Uknqn1WRU1Ki7rE4sTy68iZtWpKQXZEJa
-0IGnuI2sSINGcXCJoEIgXTMyCILo34Fa/C6VCm2WBgz9zZO8/rHIiQm1J5zqz0DrDwKBUM9C
-EOF
-    base64 -d hashicorp.asc > hashicorp.gpg
-    rm hashicorp.asc
+0IGnuI2sSINGcXCJoEIgXTMyCILo34Fa/C6VCm2WBgz9zZO8/rHIiQm1J5zqz0DrDwKBUM9C" | \
+    base64 -d > hashicorp.gpg
 fi
 
 # Download Package files.
