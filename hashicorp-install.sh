@@ -84,7 +84,6 @@ cd "$PACKAGE_TMP"
 
 # Create Hashicorp GPG keyring from base64-encoded binary of the release
 # key (91A6E7F85D05C65630BEF18951852D87348FFC4C).
-if [ ! -f hashicorp.gpg ]; then
 echo "mQENBFMORM0BCADBRyKO1MhCirazOSVwcfTr1xUxjPvfxD3hjUwHtjsOy/bT6p9fW2mRPfwnq2JB
 5As+paL3UGDsSRDnK9KAxQb0NNF4+eVhr/EJ18s3wwXXDMjpIifqfIm2WyH3G+aRLTLPIpscUNKD
 yxFOUbsmgXAmJ46Re1fn8uKxKRHbfa39aeuEYWFA3drdL1WoUngvED7f+RnKBK2G6ZEpO+LDovQk
@@ -107,16 +106,14 @@ zqqqwLxgliSDfSnqUhubGwvykANPO+93BBx89MRGunNoYGXtPlhNFrAsB1VR8+EyKLv2HQtGCPSF
 BhrjuzH3gxGibNDDdFQLxxuJWepJEK1UbTS4ms0NgZ2Uknqn1WRU1Ki7rE4sTy68iZtWpKQXZEJa
 0IGnuI2sSINGcXCJoEIgXTMyCILo34Fa/C6VCm2WBgz9zZO8/rHIiQm1J5zqz0DrDwKBUM9C" | \
     base64 -d > hashicorp.gpg
-fi
 
 # Download Package files.
-for package_file in "$PACKAGE_ZIP" "$PACKAGE_CHECKSUMS" "$PACKAGE_SIGNATURE"
-do
+for package_file in "$PACKAGE_ZIP" "$PACKAGE_CHECKSUMS" "$PACKAGE_SIGNATURE"; do
     $DOWNLOAD_COMMAND "$PACKAGE_BASEURL/$package_file"
 done
 
 # GPG verify the signature for the SHA256SUMS file.
-gpgv --keyring "$PACKAGE_TMP/hashicorp.gpg" "$PACKAGE_SIGNATURE" "$PACKAGE_CHECKSUMS"
+gpgv --keyring "./hashicorp.gpg" "$PACKAGE_SIGNATURE" "$PACKAGE_CHECKSUMS"
 
 # Verify checksums, but grep out all other lines in the checksum
 # file except the desired package.
@@ -124,10 +121,11 @@ grep -e "[[:space:]]\\+$PACKAGE_ZIP\\>" "$PACKAGE_CHECKSUMS" | sha256sum -c
 
 # Finally extract the zip file.
 if [ "$(id -u)" -eq 0 ]; then
-    unzip -o "$PACKAGE_ZIP" -d "$PACKAGE_PATH"
+    SUDO=""
 else
-    sudo unzip -o "$PACKAGE_ZIP" -d "$PACKAGE_PATH"
+    SUDO="sudo"
 fi
+${SUDO} unzip -o "$PACKAGE_ZIP" -d "$PACKAGE_PATH"
 
 # Clean up.
-rm -f "$PACKAGE_ZIP" "$PACKAGE_CHECKSUMS" "$PACKAGE_SIGNATURE"
+rm -f hashicorp.gpg "$PACKAGE_ZIP" "$PACKAGE_CHECKSUMS" "$PACKAGE_SIGNATURE"
