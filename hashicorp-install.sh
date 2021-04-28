@@ -55,9 +55,9 @@ if [ ! -x /usr/bin/unzip ]; then
 fi
 
 if [ -x /usr/bin/curl ]; then
-    DOWNLOAD_COMMAND="curl -sSL -C - -O"
+    DOWNLOAD_COMMAND="curl -sSL -O"
 elif [ -x /usr/bin/wget ]; then
-    DOWNLOAD_COMMAND="wget -c -q"
+    DOWNLOAD_COMMAND="wget -q"
 else
     echo "Either the curl or wget programs are required to download $PACKAGE_NAME." >> /dev/stderr
     exit 1
