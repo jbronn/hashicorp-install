@@ -13,16 +13,16 @@ PACKAGE_NAME="${1:-}"
 PACKAGE_ARCH="${PACKAGE_ARCH:-amd64}"
 case "$PACKAGE_NAME" in
     consul)
-        PACKAGE_VERSION="${PACKAGE_VERSION:-1.10.0}"
+        PACKAGE_VERSION="${PACKAGE_VERSION:-1.10.1}"
         ;;
     consul-esm)
         PACKAGE_VERSION="${PACKAGE_VERSION:-0.5.0}"
         ;;
     packer)
-        PACKAGE_VERSION="${PACKAGE_VERSION:-1.7.3}"
+        PACKAGE_VERSION="${PACKAGE_VERSION:-1.7.4}"
         ;;
     terraform)
-        PACKAGE_VERSION="${PACKAGE_VERSION:-1.0.1}"
+        PACKAGE_VERSION="${PACKAGE_VERSION:-1.0.2}"
         ;;
     vault)
         PACKAGE_VERSION="${PACKAGE_VERSION:-1.7.3}"
