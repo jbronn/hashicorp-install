@@ -36,15 +36,21 @@ case "$PACKAGE_NAME" in
         exit 1
         ;;
 esac
+PACKAGE_PLATFORM="$(uname -s | tr '[:upper:]' '[:lower:]')"
+if [ "${PACKAGE_PLATFORM}" = "darwin" ]; then
+    SHASUM=shasum
+else
+    SHASUM=sha256sum
+fi
 PACKAGE_BASEURL="${PACKAGE_BASEURL:-https://releases.hashicorp.com/$PACKAGE_NAME/$PACKAGE_VERSION}"
 PACKAGE_PATH="${PACKAGE_PATH:-/usr/local/bin}"
 PACKAGE_BIN="${PACKAGE_PATH}/${PACKAGE_NAME}"
-PACKAGE_ZIP="${PACKAGE_NAME}_${PACKAGE_VERSION}_linux_${PACKAGE_ARCH}.zip"
+PACKAGE_ZIP="${PACKAGE_NAME}_${PACKAGE_VERSION}_${PACKAGE_PLATFORM}_${PACKAGE_ARCH}.zip"
 PACKAGE_CHECKSUMS="${PACKAGE_NAME}_${PACKAGE_VERSION}_SHA256SUMS"
 PACKAGE_SIGNATURE="${PACKAGE_CHECKSUMS}.sig"
 PACKAGE_TMP="${PACKAGE_TMP:-/var/tmp}"
 
-if [ ! -x /usr/bin/gpgv ]; then
+if [ ! -x /usr/bin/gpgv ] && [ ! -x /usr/local/bin/gpgv ]; then
     echo "Then gpgv utility is needed to verify $PACKAGE_ZIP." >> /dev/stderr
     exit 1
 fi
@@ -195,7 +201,7 @@ gpgv --keyring "./hashicorp.gpg" "$PACKAGE_SIGNATURE" "$PACKAGE_CHECKSUMS"
 
 # Verify checksums, but grep out all other lines in the checksum
 # file except the desired package.
-grep -e "[[:space:]]\\+$PACKAGE_ZIP\\>" "$PACKAGE_CHECKSUMS" | sha256sum -c
+grep -e "[[:space:]]\\+$PACKAGE_ZIP\\>" "$PACKAGE_CHECKSUMS" | ${SHASUM} -c
 
 # Finally extract the zip file.
 if [ "$(id -u)" -eq 0 ]; then
